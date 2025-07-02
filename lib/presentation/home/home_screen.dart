@@ -3,16 +3,14 @@ import 'package:delivery_app/presentation/home/products/products_screen.dart';
 import 'package:delivery_app/presentation/home/profile/profile_screen.dart';
 import 'package:delivery_app/presentation/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:get/instance_manager.dart';
+import 'package:get/state_manager.dart';
 
-class HomeScreen extends StatefulWidget {
+import 'cart/cart_controller.dart';
+import 'home_controller.dart';
+
+class HomeScreen extends GetWidget<HomeController> {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -21,31 +19,37 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: IndexedStack(
-              index: currentIndex,
-              children: [
-                ProductsScreen(),
-                Text('currentIndex 2: $currentIndex'),
-                CartScreen(
-                  onShopping: () {
-                    setState(() {
-                      currentIndex = 0;
-                    });
-                  },
-                ),
-                Text('currentIndex 4: $currentIndex'),
-                ProfileScreen(),
-              ],
-            ),
+            child: Obx(() {
+              return IndexedStack(
+                index: controller.indexSelected.value,
+                children: [
+                  ProductsScreen(),
+                  const Placeholder(),
+                  CartScreen(
+                    onShopping: () {
+                      // setState(() {
+                      //   currentIndex = 0;
+                      // });
+                      controller.indexSelected.value = 0;
+                    },
+                  ),
+                  const Placeholder(),
+                  ProfileScreen(),
+                ],
+              );
+            }),
           ),
-          _DeliveryNavigationBar(
-            index: currentIndex,
-            onIndexSelected: (index) {
-              setState(() {
-                currentIndex = index;
-              });
-            },
-          ),
+          Obx(() {
+            return _DeliveryNavigationBar(
+              index: controller.indexSelected.value,
+              onIndexSelected: (index) {
+                controller.updateIndexSelected(index);
+                // setState(() {
+                //   currentIndex = index;
+                // });
+              },
+            );
+          }),
         ],
       ),
     );
@@ -55,9 +59,10 @@ class _HomeScreenState extends State<HomeScreen> {
 class _DeliveryNavigationBar extends StatelessWidget {
   final int index;
   final ValueChanged<int> onIndexSelected;
+  final controller = Get.find<HomeController>();
+  final cartController = Get.find<CartController>();
 
-  const _DeliveryNavigationBar({
-    super.key,
+  _DeliveryNavigationBar({
     required this.index,
     required this.onIndexSelected,
   });
@@ -98,17 +103,41 @@ class _DeliveryNavigationBar extends StatelessWidget {
                   Icons.store,
                 ),
               ),
-              CircleAvatar(
-                backgroundColor: DeliveryColors.purple,
-                child: IconButton(
-                  onPressed: () => onIndexSelected(2),
-                  icon: Icon(
-                    color: index == 2
-                        ? DeliveryColors.green
-                        : DeliveryColors.white,
-                    Icons.shopping_basket,
+              Stack(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: DeliveryColors.purple,
+                    child: IconButton(
+                      onPressed: () => onIndexSelected(2),
+                      icon: Icon(
+                        color: index == 2
+                            ? DeliveryColors.green
+                            : DeliveryColors.white,
+                        Icons.shopping_basket,
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned(
+                    right: 0,
+                    child: Obx(
+                      () => cartController.totalItems.value == 0
+                          ? const SizedBox.shrink()
+                          : CircleAvatar(
+                              radius: 10,
+                              backgroundColor: Colors.pinkAccent,
+                              child: Text(
+                                cartController.totalItems.value.toString(),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
               IconButton(
                 onPressed: () => onIndexSelected(3),
@@ -121,9 +150,18 @@ class _DeliveryNavigationBar extends StatelessWidget {
               ),
               InkWell(
                 onTap: () => onIndexSelected(4),
-                child: CircleAvatar(
-                  radius: 15,
-                  backgroundColor: Colors.red,
+                child: Obx(
+                  () {
+                    final user = controller.user.value;
+                    return user.image == null
+                        ? SizedBox.shrink()
+                        : CircleAvatar(
+                            radius: 15,
+                            backgroundImage: AssetImage(
+                              user.image ?? '',
+                            ),
+                          );
+                  },
                 ),
               ),
             ],

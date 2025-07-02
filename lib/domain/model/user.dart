@@ -1,6 +1,6 @@
 class User {
-  final String name;
-  final String username;
+  final String? name;
+  final String? username;
   final String? image;
 
   User({
@@ -8,4 +8,5 @@ class User {
     required this.username,
     this.image,
   });
+  factory User.empty() => User(name: null, username: null, image: null);
 }

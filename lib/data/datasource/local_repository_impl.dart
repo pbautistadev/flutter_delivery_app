@@ -1,13 +1,14 @@
+import 'package:delivery_app/domain/exception/auth_exception.dart';
 import 'package:delivery_app/domain/repository/local_storage_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../domain/model/user.dart';
 
-const _pref_token = 'TOKEN';
-const _pref_username = 'USERNAME';
-const _pref_name = 'NAME';
-const _pref_image = 'IMAGE';
-const _pref_dark_theme = 'THEME_DARK';
+const _prefToken = 'TOKEN';
+const _prefUsername = 'USERNAME';
+const _prefName = 'NAME';
+const _prefImage = 'IMAGE';
+const _prefDarkTheme = 'THEME_DARK';
 
 class LocalRepositoryImpl extends LocalStorageRepositoryInterface {
   @override
@@ -17,28 +18,25 @@ class LocalRepositoryImpl extends LocalStorageRepositoryInterface {
   }
 
   @override
-  Future<String> getToken() async {
+  Future<String?> getToken() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    final token = sharedPreferences.getString(_pref_token);
-    if (token == null) {
-      throw Exception();
-    }
+    final token = sharedPreferences.getString(_prefToken);
     return token;
   }
 
   @override
   Future<String> saveToken(String token) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setString(_pref_token, token);
+    sharedPreferences.setString(_prefToken, token);
     return token;
   }
 
   @override
   Future<User> getUser() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    final username = sharedPreferences.getString(_pref_username);
-    final name = sharedPreferences.getString(_pref_name);
-    final image = sharedPreferences.getString(_pref_image);
+    final username = sharedPreferences.getString(_prefUsername);
+    final name = sharedPreferences.getString(_prefName);
+    final image = sharedPreferences.getString(_prefImage);
 
     final user = User(
       username: username ?? '',
@@ -50,23 +48,27 @@ class LocalRepositoryImpl extends LocalStorageRepositoryInterface {
   }
 
   @override
-  Future<User> saveUser(User user) async {
+  Future<User> saveUser(User? user) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setString(_pref_username, user.username);
-    sharedPreferences.setString(_pref_name, user.name);
-    sharedPreferences.setString(_pref_image, user.image ?? '');
-    return user;
+
+    if (user != null) {
+      sharedPreferences.setString(_prefUsername, user.username.toString());
+      sharedPreferences.setString(_prefName, user.name.toString());
+      sharedPreferences.setString(_prefImage, user.image.toString());
+      return user;
+    }
+    throw AuthException();
   }
 
   @override
-  Future<bool> isDarkMode() async {
+  Future<bool?> isDarkMode() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    return sharedPreferences.getBool(_pref_dark_theme) ?? false;
+    return sharedPreferences.getBool(_prefDarkTheme);
   }
 
   @override
   Future<void> saveDarkMode(bool darkMode) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    sharedPreferences.setBool(_pref_dark_theme, darkMode);
+    sharedPreferences.setBool(_prefDarkTheme, darkMode);
   }
 }

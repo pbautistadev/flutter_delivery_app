@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart'
     show
         AppBarTheme,
@@ -8,7 +9,6 @@ import 'package:flutter/material.dart'
         ThemeData,
         BottomAppBarTheme,
         Colors;
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DeliveryColors {
@@ -42,7 +42,7 @@ final _borderDark = OutlineInputBorder(
   ),
 );
 
-final lightTheme =
+final ThemeData lightTheme =
     ThemeData(
       appBarTheme: AppBarTheme(
         backgroundColor: DeliveryColors.white,
@@ -82,9 +82,10 @@ final lightTheme =
       colorScheme: ThemeData().colorScheme.copyWith(
         secondary: DeliveryColors.purple,
       ),
+      brightness: Brightness.light,
     );
 
-final darkTheme =
+final ThemeData darkTheme =
     ThemeData(
       appBarTheme: AppBarTheme(
         color: DeliveryColors.purple,
@@ -133,4 +134,5 @@ final darkTheme =
       colorScheme: ThemeData().colorScheme.copyWith(
         secondary: DeliveryColors.white,
       ),
+      brightness: Brightness.dark,
     );
