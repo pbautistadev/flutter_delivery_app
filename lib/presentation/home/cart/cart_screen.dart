@@ -1,29 +1,28 @@
-import 'package:delivery_app/presentation/home/cart/cart_controller.dart';
+import 'package:delivery_app/presentation/home/cart/cart_bloc.dart';
 import 'package:delivery_app/presentation/theme.dart';
 import 'package:delivery_app/presentation/widgets/delivery_button.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 import '../../../domain/model/product_cart.dart';
 
-class CartScreen extends GetWidget<CartController> {
+class CartScreen extends StatelessWidget {
   const CartScreen({super.key, this.onShopping});
 
   final VoidCallback? onShopping;
 
   @override
   Widget build(BuildContext context) {
+    final cartBloc = context.watch<CartBLoC>();
     return Scaffold(
       appBar: AppBar(
         title: Text('Shopping Cart'),
       ),
-      body: Obx(
-        () => controller.totalItems.value == 0
-            ? _EmptyCart(
-                onShopping: onShopping,
-              )
-            : _FullCart(),
-      ),
+      body: cartBloc.totalItems == 0
+          ? _EmptyCart(
+              onShopping: onShopping,
+            )
+          : _FullCart(),
       // _EmptyCart(
       //   onShopping: onShopping,
       // ),
@@ -31,9 +30,12 @@ class CartScreen extends GetWidget<CartController> {
   }
 }
 
-class _FullCart extends GetWidget<CartController> {
+class _FullCart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final cartBloc = context.watch<CartBLoC>();
+    final totalPrice = cartBloc.totalPrice.toStringAsFixed(2);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -41,27 +43,25 @@ class _FullCart extends GetWidget<CartController> {
           flex: 2,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 20.0),
-            child: Obx(
-              () => ListView.builder(
-                itemCount: controller.cartList.length,
-                scrollDirection: Axis.horizontal,
-                itemExtent: 230,
-                itemBuilder: (context, index) {
-                  final productCart = controller.cartList[index];
-                  return _ShoppingCartProduct(
-                    productCart: productCart,
-                    onDelete: () {
-                      controller.deleteProduct(productCart);
-                    },
-                    onIncrement: () {
-                      controller.increment(productCart);
-                    },
-                    onDecrement: () {
-                      controller.decrement(productCart);
-                    },
-                  );
-                },
-              ),
+            child: ListView.builder(
+              itemCount: cartBloc.cartList.length,
+              scrollDirection: Axis.horizontal,
+              itemExtent: 230,
+              itemBuilder: (context, index) {
+                final productCart = cartBloc.cartList[index];
+                return _ShoppingCartProduct(
+                  productCart: productCart,
+                  onDelete: () {
+                    cartBloc.deleteProduct(productCart);
+                  },
+                  onIncrement: () {
+                    cartBloc.increment(productCart);
+                  },
+                  onDecrement: () {
+                    cartBloc.decrement(productCart);
+                  },
+                );
+              },
             ),
           ),
         ),
@@ -143,21 +143,15 @@ class _FullCart extends GetWidget<CartController> {
                                 ).copyWith().colorScheme.secondary,
                               ),
                             ),
-                            Obx(
-                              () {
-                                final totalPrice = controller.totalPrice.value
-                                    .toStringAsFixed(2);
-                                return Text(
-                                  '\$$totalPrice usd',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).copyWith().colorScheme.secondary,
-                                  ),
-                                );
-                              },
+                            Text(
+                              '\$$totalPrice usd',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(
+                                  context,
+                                ).copyWith().colorScheme.secondary,
+                              ),
                             ),
                           ],
                         ),

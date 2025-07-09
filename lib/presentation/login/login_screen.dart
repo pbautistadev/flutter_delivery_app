@@ -1,23 +1,48 @@
+import 'package:delivery_app/domain/repository/api_repository.dart';
+import 'package:delivery_app/domain/repository/local_storage_repository.dart';
+import 'package:delivery_app/presentation/home/home_screen.dart';
 import 'package:delivery_app/presentation/theme.dart';
 import 'package:delivery_app/presentation/widgets/delivery_button.dart';
 import 'package:flutter/material.dart';
-import 'package:get/route_manager.dart';
-import 'package:get/state_manager.dart';
+import 'package:provider/provider.dart';
 
-import '../routes/delivery_navigation.dart';
-import 'login_controller.dart';
+import 'login_bloc.dart';
 
 const logoSize = 45.0;
 
-class LoginScreen extends GetWidget<LoginController> {
-  const LoginScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen._();
+  // final _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
 
-  void login() async {
-    final result = await controller.login();
+  static Widget init(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => LoginBLoC(
+        apiRepositoryInterface: context.read<ApiRepositoryInterface>(),
+        localRepositoryInterface: context.read<LocalRepositoryInterface>(),
+      ),
+      builder: (_, __) => LoginScreen._(),
+    );
+  }
+
+  void login(BuildContext context) async {
+    final bloc = context.read<LoginBLoC>();
+    final result = await bloc.login();
     if (result) {
-      Get.offAllNamed(DeliveryRoutes.home);
+      if (!context.mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => HomeScreen.init(context)),
+      );
     } else {
-      Get.snackbar('Error', 'Login incorrect');
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login incorrect'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      // _scaffoldKey.currentState!.showSnackBar(
+      //   SnackBar(content: Text('Login incorrect')),
+      // );
     }
   }
 
@@ -27,7 +52,10 @@ class LoginScreen extends GetWidget<LoginController> {
     final widht = size.width;
     final moreSize = 50.0;
 
+    final bloc = context.watch<LoginBLoC>();
+
     return Scaffold(
+      // key: _scaffoldKey,
       body: Stack(
         children: [
           Column(
@@ -107,7 +135,7 @@ class LoginScreen extends GetWidget<LoginController> {
                               ),
                         ),
                         TextField(
-                          controller: controller.usernameTextController,
+                          controller: bloc.usernameTextController,
                           decoration: InputDecoration(
                             prefixIcon: Icon(
                               Icons.person_outline,
@@ -127,7 +155,7 @@ class LoginScreen extends GetWidget<LoginController> {
                               ),
                         ),
                         TextField(
-                          controller: controller.passwordTextController,
+                          controller: bloc.passwordTextController,
                           decoration: InputDecoration(
                             prefixIcon: Icon(
                               Icons.check_box_outlined,
@@ -143,25 +171,21 @@ class LoginScreen extends GetWidget<LoginController> {
               Padding(
                 padding: EdgeInsets.all(25),
                 child: DeliveryButton(
-                  onTap: login,
+                  onTap: () => login(context),
                   text: 'Login',
                 ),
               ),
             ],
           ),
           Positioned.fill(
-            child: Obx(() {
-              if (controller.loginState.value == LoginState.loading) {
-                return Container(
-                  color: Colors.black26,
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              } else {
-                return const SizedBox.shrink();
-              }
-            }),
+            child: bloc.loginState == LoginState.loading
+                ? Container(
+                    color: Colors.black26,
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),

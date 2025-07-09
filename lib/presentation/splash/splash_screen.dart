@@ -1,14 +1,61 @@
-import 'package:delivery_app/presentation/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:get/instance_manager.dart';
-import 'package:get/state_manager.dart';
+import 'package:provider/provider.dart';
+import 'package:delivery_app/domain/repository/api_repository.dart';
+import 'package:delivery_app/domain/repository/local_storage_repository.dart';
+import 'package:delivery_app/presentation/theme.dart';
+import 'package:delivery_app/presentation/home/home_screen.dart';
+import 'package:delivery_app/presentation/login/login_screen.dart';
 
-import 'splash_controller.dart';
+import 'splash_bloc.dart';
 
-class SplashScreen extends GetWidget<SplashController> {
-  SplashScreen({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen._();
 
-  final splashController = Get.find<SplashController>();
+  static Widget init(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => SplashBloC(
+        apiRepositoryInterface: context.read<ApiRepositoryInterface>(),
+        localRepositoryInterface: context.read<LocalRepositoryInterface>(),
+      ),
+      builder: (_, __) => SplashScreen._(),
+    );
+  }
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  void _init() async {
+    final bloc = context.read<SplashBloC>();
+    final result = await bloc.validateSession();
+
+    if (result) {
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).pushReplacement(
+        MaterialPageRoute(builder: (newContext) => HomeScreen.init(newContext)),
+      );
+    } else {
+      if (!mounted) return;
+      Navigator.of(
+        context,
+      ).pushReplacement(
+        MaterialPageRoute(
+          builder: (newContext) => LoginScreen.init(newContext),
+        ),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _init();
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

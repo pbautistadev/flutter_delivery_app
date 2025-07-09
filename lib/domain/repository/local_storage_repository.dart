@@ -1,6 +1,6 @@
 import '../model/user.dart';
 
-abstract class LocalStorageRepositoryInterface {
+abstract class LocalRepositoryInterface {
   Future<String?> getToken();
   Future<String> saveToken(String token);
   Future<void> clearAllData();

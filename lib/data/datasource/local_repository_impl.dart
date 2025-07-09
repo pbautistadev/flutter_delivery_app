@@ -10,7 +10,7 @@ const _prefName = 'NAME';
 const _prefImage = 'IMAGE';
 const _prefDarkTheme = 'THEME_DARK';
 
-class LocalRepositoryImpl extends LocalStorageRepositoryInterface {
+class LocalRepositoryImpl extends LocalRepositoryInterface {
   @override
   Future<void> clearAllData() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();

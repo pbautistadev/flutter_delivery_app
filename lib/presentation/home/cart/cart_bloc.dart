@@ -1,12 +1,12 @@
-import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 
 import '../../../domain/model/product.dart';
 import '../../../domain/model/product_cart.dart';
 
-class CartController extends GetxController {
-  RxList<ProductCart> cartList = <ProductCart>[].obs;
-  RxInt totalItems = 0.obs;
-  RxDouble totalPrice = 0.0.obs;
+class CartBLoC extends ChangeNotifier {
+  List<ProductCart> cartList = <ProductCart>[];
+  int totalItems = 0;
+  double totalPrice = 0.0;
 
   void add(Product product) {
     final temp = List<ProductCart>.from(cartList);
@@ -22,21 +22,21 @@ class CartController extends GetxController {
     if (!found) {
       temp.add(ProductCart(product: product));
     }
-    cartList.value = List<ProductCart>.from(temp);
+    cartList = List<ProductCart>.from(temp);
 
     calculateTotal(temp);
   }
 
   void increment(ProductCart productCart) {
     productCart.quantity += 1;
-    cartList.value = List<ProductCart>.from(cartList);
+    cartList = List<ProductCart>.from(cartList);
     calculateTotal(cartList);
   }
 
   void decrement(ProductCart productCart) {
     if (productCart.quantity > 1) {
       productCart.quantity -= 1;
-      cartList.value = List<ProductCart>.from(cartList);
+      cartList = List<ProductCart>.from(cartList);
       calculateTotal(cartList);
     }
   }
@@ -46,14 +46,15 @@ class CartController extends GetxController {
       0,
       (previousValue, element) => element.quantity + previousValue,
     );
-    totalItems(total);
+    totalItems = total;
 
     final totalCost = temp.fold(
       0.0,
       (previousValue, element) =>
           (element.quantity * element.product.price) + previousValue,
     );
-    totalPrice(totalCost);
+    totalPrice = totalCost;
+    notifyListeners();
   }
 
   void deleteProduct(ProductCart productCart) {
